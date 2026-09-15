@@ -48,7 +48,7 @@ export default function TodosPage() {
 
     localStorage.setItem(
       "todos",
-      JSON.stringify(updatedTodos)
+      JSON.stringify(updatedTodos)d
     );
   }
 
