@@ -32,7 +32,11 @@ export default function TodosPage() {
     );
 
     setTodos(updatedTodos);
-    localStorage.setItem("todos", JSON.stringify(updatedTodos));
+
+    localStorage.setItem(
+      "todos",
+      JSON.stringify(updatedTodos)
+    );
   }
 
   function deleteTodo(id: number) {
@@ -41,11 +45,31 @@ export default function TodosPage() {
     );
 
     setTodos(updatedTodos);
-    localStorage.setItem("todos", JSON.stringify(updatedTodos));
+
+    localStorage.setItem(
+      "todos",
+      JSON.stringify(updatedTodos)
+    );
+  }
+
+  function updateTodo(updatedTodo: Todo) {
+    const updatedTodos = todos.map((todo) =>
+      todo.id === updatedTodo.id
+        ? updatedTodo
+        : todo
+    );
+
+    setTodos(updatedTodos);
+
+    localStorage.setItem(
+      "todos",
+      JSON.stringify(updatedTodos)
+    );
   }
 
   return (
     <main className="p-6">
+
       <h1 className="text-3xl font-bold mb-6">
         Your Todos
       </h1>
@@ -54,6 +78,7 @@ export default function TodosPage() {
         todos={todos}
         onToggle={toggleComplete}
         onDelete={deleteTodo}
+        onUpdate={updateTodo}
       />
 
       <Link
@@ -62,6 +87,7 @@ export default function TodosPage() {
       >
         Add Todo
       </Link>
+
     </main>
   );
 }
