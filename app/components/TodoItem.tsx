@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Formik, Form, Field } from "formik";
 
 interface Todo {
-  id: number;
+  id: string;
   name: string;
   description: string;
   dueDate: string;
@@ -14,8 +14,8 @@ interface Todo {
 
 interface TodoItemProps {
   todo: Todo;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
   onUpdate: (updatedTodo: Todo) => void;
 }
 
@@ -35,7 +35,7 @@ export default function TodoItem({
     initialValues={{
       name: todo.name,
       description: todo.description,
-      dueDate: todo.dueDate,
+      dueDate: todo.dueDate.split("T")[0],
       priority: todo.priority,
     }}
     onSubmit={(values) => {
@@ -119,7 +119,7 @@ export default function TodoItem({
   </p>
 
   <p className="text-sm mt-1">
-    Due: {todo.dueDate}
+    Due: {todo.dueDate.split("T")[0]}
   </p>
 
   <p className="text-sm">

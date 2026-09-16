@@ -3,7 +3,7 @@
 import TodoItem from "./TodoItem";
 
 interface Todo {
-  id: number;
+  id: string;
   name: string;
   description: string;
   dueDate: string;
@@ -13,8 +13,8 @@ interface Todo {
 
 interface TodoListProps {
   todos: Todo[];
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
   onUpdate: (updatedTodo: Todo) => void;
 }
 
