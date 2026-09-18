@@ -25,7 +25,7 @@ export default function Home() {
 
       console.log("POST RESPONSE:", response.data);
 
-      router.refresh();
+      router.push("/todos");
     } catch (error) {
       console.error("POST ERROR:", error);
     }

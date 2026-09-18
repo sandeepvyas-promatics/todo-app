@@ -25,7 +25,7 @@ export default function TodosPage() {
 
       console.log("API RESPONSE:", response.data);
 
-      const apiTodos = response.data.data;
+      const apiTodos = response.data;//.data
 
       const formattedTodos: Todo[] = apiTodos.map((todo: any) => ({
         id: todo._id,
@@ -50,7 +50,7 @@ export default function TodosPage() {
       try{
         const response= await api.patch(`/todos/${id}/toggle`);
         console.log("TOGGLE RESPONSE: ", response.data);
-        const updatedTodo = response.data.data;
+        const updatedTodo = response.data;//.data;
 
         setTodos((prevTodos)=>
         prevTodos.map((todo)=>
@@ -93,12 +93,11 @@ export default function TodosPage() {
 
     console.log("UPDATE DATA BEING SENT:", updateData);
 
-    const response = await api.patch(`/todos/${updatedTodo.id}`,updateData
-    );
+    const response = await api.patch(`/todos/${updatedTodo.id}`,updateData);
 
     console.log("UPDATED RESPONSE:", response.data);
 
-    const updatedApiTodo = response.data.data;
+    const updatedApiTodo = response.data;//.data;
 
     const formattedTodo: Todo = {
       id: updatedApiTodo._id,

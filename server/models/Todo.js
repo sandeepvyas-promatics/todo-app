@@ -1,15 +1,16 @@
+// SCHEMA FOR MangoDB
 const mongoose= require("mongoose");
 const todoSchema=new mongoose.Schema({
     title:{
-        type: string,
+        type: String,
         required: [true,"it is required"],
         minlength:[3,"minimum 3 letter required"],
         maxLength:[100,"Maximum 100 letter required"],
     },
     description: {
-        type: string,
+        type: String,
         required:true,
-        minlength:[10,"minimum 10 letter required"],
+        minlength:[5,"minimum 10 letter required"],
         maxlength:[500,"Maximum 500 letter required"]
     },
     dueDate: {
@@ -17,12 +18,12 @@ const todoSchema=new mongoose.Schema({
         required: true,
     },
     priority: {
-        type: string,
+        type: String,
         enum:["low","medium","high"],
         required: true,
     },
     completed:{
-        type:boolean,
+        type:Boolean,
         default: false,
     }
 });

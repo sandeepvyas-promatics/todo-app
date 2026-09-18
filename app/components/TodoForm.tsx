@@ -21,6 +21,7 @@ const ValidationSchema = Yup.object({
 
   description: Yup.string()
     .required("description is required.")
+    .min(5, "more then 5 letters required.")
     .max(100, "description can't exceed 100 letters."),
 
   dueDate: Yup.string()
