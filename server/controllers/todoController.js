@@ -1,4 +1,4 @@
-const Todo = require("../models/Todo");
+import Todo from "../models/Todo.js";
 
 const getTodos = async (req, res) => {
     try{
@@ -107,4 +107,11 @@ const toggleTodo= async (req,res)=>{
         })
     } 
 }
-module.exports= {getTodos,getTodoById,createTodo,updateTodo,deleteTodo,toggleTodo};
+export {
+  getTodos,
+  getTodoById,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  toggleTodo,
+};

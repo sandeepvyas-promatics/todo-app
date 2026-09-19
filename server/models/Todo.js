@@ -1,5 +1,5 @@
 // SCHEMA FOR MangoDB
-const mongoose= require("mongoose");
+import  mongoose from "mongoose"
 const todoSchema=new mongoose.Schema({
     title:{
         type: String,
@@ -29,4 +29,4 @@ const todoSchema=new mongoose.Schema({
 });
 
 const Todo=mongoose.model("Todo",todoSchema);
-module.exports=Todo;
+export default Todo;

@@ -1,5 +1,5 @@
 // DATABASE CONNECTIVITY
-const mongoose=require("mongoose");
+import mongoose from "mongoose";
 
 const connectDB= async ()=>{
     try{
@@ -9,4 +9,4 @@ const connectDB= async ()=>{
         console.log("MongoDB connection Failed:",error);
     }
 };
-module.exports = connectDB;
+export default connectDB;

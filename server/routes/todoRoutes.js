@@ -1,30 +1,32 @@
-const express = require("express");
-const router = express.Router();
-const {
+import express from "express";
+
+import {
   getTodos,
   getTodoById,
   createTodo,
   updateTodo,
   deleteTodo,
-  toggleTodo
-  } = require("../controllers/todoController");
+  toggleTodo,
+} from "../controllers/todoController.js";
 
-// GET /todos      -> Todo
+const router = express.Router();
+
+// GET /todos -> all Todos
 router.get("/todos", getTodos);
 
-// GET /todos/:id      -> one Todo
-router.get("/todos/:id",getTodoById )
+// GET /todos/:id -> one Todo
+router.get("/todos/:id", getTodoById);
 
 // PATCH /todos/:id/toggle -> toggle completed status
-router.patch("/todos/:id/toggle",toggleTodo);
+router.patch("/todos/:id/toggle", toggleTodo);
 
-// POST /todos         -> create Todo
-router.post("/todos",createTodo)
+// POST /todos -> create Todo
+router.post("/todos", createTodo);
 
-// PATCH /todos/:id    -> update Todo
-router.patch("/todos/:id",updateTodo);
+// PATCH /todos/:id -> update Todo
+router.patch("/todos/:id", updateTodo);
 
-// DELETE /todos/:id   -> delete Todo
-router.delete("/todos/:id",deleteTodo );
+// DELETE /todos/:id -> delete Todo
+router.delete("/todos/:id", deleteTodo);
 
-module.exports = router;
+export default router;

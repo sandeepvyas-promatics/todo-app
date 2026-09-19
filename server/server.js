@@ -1,14 +1,16 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
-
-const connectDB= require("./config/db");
-const todoRoutes= require("./routes/todoRoutes")
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import todoRoutes from "./routes/todoRoutes.js";
+import logger from "./middleware/logger.js";
 
 const app = express();
+dotenv.config();
 
 app.use(cors());
 app.use(express.json());
+app.use(logger);
 
 app.use(todoRoutes);
 
