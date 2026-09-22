@@ -1,5 +1,5 @@
 import express from "express";
-
+import authMiddleware from "../middleware/authMiddleware.js";
 import {
   getTodos,
   getTodoById,
@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 // GET /todos -> all Todos
-router.get("/todos", getTodos);
+router.get("/todos",authMiddleware ,getTodos);
 
 // GET /todos/:id -> one Todo
 router.get("/todos/:id", getTodoById);

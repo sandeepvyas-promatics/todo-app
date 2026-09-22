@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import todoRoutes from "./routes/todoRoutes.js";
 import logger from "./middleware/logger.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -11,7 +12,7 @@ dotenv.config();
 app.use(cors());
 app.use(express.json());
 app.use(logger);
-
+app.use(authRoutes);
 app.use(todoRoutes);
 
 connectDB();
