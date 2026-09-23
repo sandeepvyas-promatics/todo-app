@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import sendEmail from "../services/emailService.js"
 
 const generateToken = (userId) => {
   return jwt.sign(
@@ -31,6 +32,8 @@ const registerUser = async (req, res) => {
 
     const otp = crypto.randomInt(100000, 1000000).toString(); 
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const registrationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    //2 *60 * 1000
     const hashedOtp = await bcrypt.hash(otp, 10);
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("OTP:", otp);
@@ -40,7 +43,14 @@ const registerUser = async (req, res) => {
       password : hashedPassword,
       verificationOtp: hashedOtp,
       verificationOtpExpiresAt: otpExpiresAt,
+      registrationExpiresAt: registrationExpiresAt,
     });
+
+    await sendEmail(
+      email,
+      "Verify your Todo App account",
+      `Your verification OTP is: ${otp}. This OTP will expire in 10 minutes.`
+    );
 
     res.status(201).json({
       message: "User registered successfully",
@@ -106,6 +116,7 @@ const verifyOtp = async (req, res) => {
     user.isVerified = true;
     user.verificationOtp = undefined;
     user.verificationOtpExpiresAt = undefined;
+    user.registrationExpiresAt = undefined;
 
     await user.save();
 
@@ -169,5 +180,63 @@ const loginUser = async (req, res) => {
     });
   }
 };
+const resendOtp = async(req,res)=>{
+    try{
+      const {email}= req.body;
+      const user = await User.findOne({ email });
+      if(!user){
+        return res.status(404).json({
+          message:"User Not Found",
+        });
+      }
+      if (user.isVerified){
+        return res.status(404).json({
+          message:"User is already verified",
+        });
+      }
+      if (user.lastOtpResendAt) {
+        const timePassed =
+          Date.now() - user.lastOtpResendAt.getTime();
 
-export { registerUser,verifyOtp,loginUser };
+        const cooldown = 60 * 1000;
+
+      if (timePassed < cooldown) {
+        const remainingSeconds = Math.ceil(
+          (cooldown - timePassed) / 1000
+        );
+
+      return res.status(429).json({
+        message: `Please wait ${remainingSeconds} seconds before requesting another OTP`,
+      });
+    }
+  }
+      const otp = crypto.randomInt(100000,1000000).toString();
+      const otpExpiresAt = new Date (Date.now() + 10 * 60 * 1000);
+      const hashedOtp = await bcrypt.hash(otp,10);
+
+      user.verificationOtp = hashedOtp;
+      user.verificationOtpExpiresAt = otpExpiresAt;
+      user.lastOtpResendAt = new Date();
+
+      await user.save();
+
+      console.log("Resend Otp:", otp);
+
+      await sendEmail(
+        email,
+        "Verify your Todo App account",
+        `Your new verification OTP is: ${otp}. This OTP will expire in 10 minutes.`
+      );
+      res.json({
+        message: "New Otp sent Successfully"
+      });
+    }catch(error){
+      console.log("RESEND OTP ERROR:", error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+
+export { registerUser,verifyOtp,loginUser,resendOtp };

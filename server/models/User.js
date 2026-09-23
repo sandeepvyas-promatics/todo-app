@@ -34,6 +34,15 @@ const userSchema = new mongoose.Schema(
     verificationOtpExpiresAt: {
       type: Date,
     },
+    lastOtpResendAt: {
+    type: Date,
+  },
+    registrationExpiresAt: {
+    type: Date,
+    index: {
+        expireAfterSeconds: 0,
+    }
+    }
   },
   {
     timestamps: true,

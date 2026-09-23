@@ -58,11 +58,11 @@ const updateTodo =  async (req,res)=>{
     {
     new:true,
     runValidators:true,})
-            if(!todo){
-            return res.status(404).json({
-                message:"Todo Not Found"
-            });
-            }
+    if(!todo){
+    return res.status(404).json({
+        message:"Todo Not Found"
+    });
+    }
     res.json(todo);
     }catch(error){
         console.log(error);
