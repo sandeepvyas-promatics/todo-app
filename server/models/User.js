@@ -34,14 +34,21 @@ const userSchema = new mongoose.Schema(
     verificationOtpExpiresAt: {
       type: Date,
     },
+    verificationAttempts: {
+      type: Number,
+      default: 0,
+    },
+    verificationBlockedUntil: {
+      type: Date,
+    },
     lastOtpResendAt: {
-    type: Date,
-  },
+      type: Date,
+    },
     registrationExpiresAt: {
-    type: Date,
-    index: {
-        expireAfterSeconds: 0,
-    }
+      type: Date,
+      index: {
+          expireAfterSeconds: 0,
+      }
     }
   },
   {

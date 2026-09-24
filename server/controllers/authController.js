@@ -87,6 +87,12 @@ const verifyOtp = async (req, res) => {
       });
     }
 
+    if (user.verificationBlockedUntil && new Date() < user.verificationBlockedUntil){
+      return res.status(429).json({
+        message: "Too many failed attempts. Please try again later."
+      });
+    }
+
     if (
       !user.verificationOtp ||
       !user.verificationOtpExpiresAt
@@ -108,14 +114,25 @@ const verifyOtp = async (req, res) => {
     );
 
     if (!isOtpValid) {
+      user.verificationAttempts += 1;
+
+    if (user.verificationAttempts >= 5) {
+      user.verificationBlockedUntil = new Date(
+        Date.now() + 15 * 60 * 1000);
+    }
+
+      await user.save();
+
       return res.status(400).json({
-        message: "Invalid OTP",
+        message: "Invalid OTP"
       });
     }
 
     user.isVerified = true;
     user.verificationOtp = undefined;
     user.verificationOtpExpiresAt = undefined;
+    user.verificationAttempts=0;
+    user.verificationBlockedUntil= undefined;
     user.registrationExpiresAt = undefined;
 
     await user.save();
@@ -192,6 +209,12 @@ const resendOtp = async(req,res)=>{
       if (user.isVerified){
         return res.status(404).json({
           message:"User is already verified",
+        });
+      }
+      if (user.verificationBlockedUntil &&
+        new Date() < user.verificationBlockedUntil) {
+        return res.status(429).json({
+          message: "Too many failed attempts. Please try again later.",
         });
       }
       if (user.lastOtpResendAt) {

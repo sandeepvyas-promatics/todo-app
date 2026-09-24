@@ -15,18 +15,18 @@ const router = express.Router();
 router.get("/todos",authMiddleware ,getTodos);
 
 // GET /todos/:id -> one Todo
-router.get("/todos/:id", getTodoById);
+router.get("/todos/:id",authMiddleware ,getTodoById);
 
 // PATCH /todos/:id/toggle -> toggle completed status
-router.patch("/todos/:id/toggle", toggleTodo);
+router.patch("/todos/:id/toggle",authMiddleware ,toggleTodo);
 
 // POST /todos -> create Todo
-router.post("/todos", createTodo);
+router.post("/todos",authMiddleware ,createTodo);
 
 // PATCH /todos/:id -> update Todo
-router.patch("/todos/:id", updateTodo);
+router.patch("/todos/:id",authMiddleware ,updateTodo);
 
 // DELETE /todos/:id -> delete Todo
-router.delete("/todos/:id", deleteTodo);
+router.delete("/todos/:id",authMiddleware ,deleteTodo);
 
 export default router;
