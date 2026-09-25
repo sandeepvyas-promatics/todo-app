@@ -2,23 +2,35 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
-import sendEmail from "../services/emailService.js"
+import sendEmail from "../services/emailService.js";
 
-const generateToken = (userId) => {
+// Generate Access Token
+const generateAccessToken = (userId) => {
   return jwt.sign(
     { userId },
     process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+      expiresIn: process.env.JWT_EXPIRES_IN || "15m",
     }
   );
 };
+// Generate Refresh Token
+const generateRefreshToken = (userId) => {
+  return jwt.sign(
+    { userId },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "30d",
+    }
+  );
+};
+// REGISTER USER
 const registerUser = async (req, res) => {
   try {
     console.log("REGISTER REQUEST:", {
-  name: req.body.name,
-  email: req.body.email,
-  });
+      name: req.body.name,
+      email: req.body.email,
+    });
 
     const { name, email, password } = req.body;
 
@@ -30,20 +42,29 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const otp = crypto.randomInt(100000, 1000000).toString(); 
-    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
-    const registrationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    //2 *60 * 1000
+    const otp = crypto.randomInt(100000, 1000000).toString();
+
+    const otpExpiresAt = new Date(
+      Date.now() + 10 * 60 * 1000
+    );
+
+    const registrationExpiresAt = new Date(
+      Date.now() + 24 * 60 * 60 * 1000
+    );
+
     const hashedOtp = await bcrypt.hash(otp, 10);
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Temporary local development log
     console.log("OTP:", otp);
-    const user = await User.create({  
+
+    const user = await User.create({
       name,
       email,
-      password : hashedPassword,
+      password: hashedPassword,
       verificationOtp: hashedOtp,
       verificationOtpExpiresAt: otpExpiresAt,
-      registrationExpiresAt: registrationExpiresAt,
+      registrationExpiresAt,
     });
 
     await sendEmail(
@@ -60,7 +81,7 @@ const registerUser = async (req, res) => {
         email: user.email,
         isVerified: user.isVerified,
       },
-  });
+    });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
 
@@ -69,6 +90,7 @@ const registerUser = async (req, res) => {
     });
   }
 };
+// VERIFY OTP
 const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -87,16 +109,16 @@ const verifyOtp = async (req, res) => {
       });
     }
 
-    if (user.verificationBlockedUntil && new Date() < user.verificationBlockedUntil){
+    if (
+      user.verificationBlockedUntil &&
+      new Date() < user.verificationBlockedUntil
+    ) {
       return res.status(429).json({
-        message: "Too many failed attempts. Please try again later."
+        message: "Too many failed attempts. Please try again later.",
       });
     }
 
-    if (
-      !user.verificationOtp ||
-      !user.verificationOtpExpiresAt
-    ) {
+    if (!user.verificationOtp || !user.verificationOtpExpiresAt) {
       return res.status(400).json({
         message: "OTP not found",
       });
@@ -116,23 +138,24 @@ const verifyOtp = async (req, res) => {
     if (!isOtpValid) {
       user.verificationAttempts += 1;
 
-    if (user.verificationAttempts >= 5) {
-      user.verificationBlockedUntil = new Date(
-        Date.now() + 15 * 60 * 1000);
-    }
+      if (user.verificationAttempts >= 5) {
+        user.verificationBlockedUntil = new Date(
+          Date.now() + 15 * 60 * 1000
+        );
+      }
 
       await user.save();
 
       return res.status(400).json({
-        message: "Invalid OTP"
+        message: "Invalid OTP",
       });
     }
 
     user.isVerified = true;
     user.verificationOtp = undefined;
     user.verificationOtpExpiresAt = undefined;
-    user.verificationAttempts=0;
-    user.verificationBlockedUntil= undefined;
+    user.verificationAttempts = 0;
+    user.verificationBlockedUntil = undefined;
     user.registrationExpiresAt = undefined;
 
     await user.save();
@@ -148,6 +171,7 @@ const verifyOtp = async (req, res) => {
     });
   }
 };
+// LOGIN USER
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -177,11 +201,20 @@ const loginUser = async (req, res) => {
       });
     }
 
-    const token = generateToken(user._id);
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: "/auth",
+    });
 
     res.json({
       message: "Login successful",
-      token,
+      accessToken,
       user: {
         id: user._id,
         name: user.name,
@@ -197,69 +230,125 @@ const loginUser = async (req, res) => {
     });
   }
 };
-const resendOtp = async(req,res)=>{
-    try{
-      const {email}= req.body;
-      const user = await User.findOne({ email });
-      if(!user){
-        return res.status(404).json({
-          message:"User Not Found",
-        });
-      }
-      if (user.isVerified){
-        return res.status(404).json({
-          message:"User is already verified",
-        });
-      }
-      if (user.verificationBlockedUntil &&
-        new Date() < user.verificationBlockedUntil) {
-        return res.status(429).json({
-          message: "Too many failed attempts. Please try again later.",
-        });
-      }
-      if (user.lastOtpResendAt) {
-        const timePassed =
-          Date.now() - user.lastOtpResendAt.getTime();
+// RESEND OTP
+const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
 
-        const cooldown = 60 * 1000;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User Not Found",
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        message: "User is already verified",
+      });
+    }
+
+    if (
+      user.verificationBlockedUntil &&
+      new Date() < user.verificationBlockedUntil
+    ) {
+      return res.status(429).json({
+        message: "Too many failed attempts. Please try again later.",
+      });
+    }
+
+    if (user.lastOtpResendAt) {
+      const timePassed =
+        Date.now() - user.lastOtpResendAt.getTime();
+
+      const cooldown = 60 * 1000;
 
       if (timePassed < cooldown) {
         const remainingSeconds = Math.ceil(
           (cooldown - timePassed) / 1000
         );
 
-      return res.status(429).json({
-        message: `Please wait ${remainingSeconds} seconds before requesting another OTP`,
-      });
+        return res.status(429).json({
+          message: `Please wait ${remainingSeconds} seconds before requesting another OTP`,
+        });
+      }
     }
-  }
-      const otp = crypto.randomInt(100000,1000000).toString();
-      const otpExpiresAt = new Date (Date.now() + 10 * 60 * 1000);
-      const hashedOtp = await bcrypt.hash(otp,10);
 
-      user.verificationOtp = hashedOtp;
-      user.verificationOtpExpiresAt = otpExpiresAt;
-      user.lastOtpResendAt = new Date();
+    const otp = crypto.randomInt(100000, 1000000).toString();
 
-      await user.save();
+    const otpExpiresAt = new Date(
+      Date.now() + 10 * 60 * 1000
+    );
 
-      console.log("Resend Otp:", otp);
+    const hashedOtp = await bcrypt.hash(otp, 10);
 
-      await sendEmail(
-        email,
-        "Verify your Todo App account",
-        `Your new verification OTP is: ${otp}. This OTP will expire in 10 minutes.`
-      );
-      res.json({
-        message: "New Otp sent Successfully"
-      });
-    }catch(error){
-      console.log("RESEND OTP ERROR:", error);
+    user.verificationOtp = hashedOtp;
+    user.verificationOtpExpiresAt = otpExpiresAt;
+    user.lastOtpResendAt = new Date();
+    user.verificationAttempts = 0;
+    user.verificationBlockedUntil = undefined;
+
+    await user.save();
+
+    // Temporary local development log
+    console.log("Resend OTP:", otp);
+
+    await sendEmail(
+      email,
+      "Verify your Todo App account",
+      `Your new verification OTP is: ${otp}. This OTP will expire in 10 minutes.`
+    );
+
+    res.json({
+      message: "New OTP sent successfully",
+    });
+  } catch (error) {
+    console.error("RESEND OTP ERROR:", error);
 
     res.status(500).json({
       message: "Server Error",
     });
   }
 };
+// refresh AccessToken
+const refreshAccessToken = async (req,res)=>{
+    try{
+        // read
+        const refreshToken= req.cookies.refreshToken;
+        // check token
+        if(!refreshToken){
+            return res.status(401).json({
+                message : "Refresh Token Require"
+            })
+        }
+        // verify 
+        const decoder = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        // verify user
+        const user = await User.findById(decoder.userId);
+        if (!user || !user.isVerified){
+            return res.status(401).json({
+                message : "Invalid refresh Token"
+            })
+        }
+        // renew token 
+        const accessToken= generateAccessToken(user._id);
+        res.json({
+            message : "Access token refreshed successfully",
+            accessToken
+        });
+    }catch (error) {
+  console.error("REFRESH TOKEN ERROR:", error);
 
-export { registerUser,verifyOtp,loginUser,resendOtp };
+  return res.status(401).json({
+    message: "Invalid or expired refresh token",
+  });
+}
+};
+export {
+  registerUser,
+  verifyOtp,
+  loginUser,
+  resendOtp,
+  refreshAccessToken,
+};
