@@ -14,16 +14,6 @@ const generateAccessToken = (userId) => {
     }
   );
 };
-// Generate Refresh Token
-const generateRefreshToken = (userId) => {
-  return jwt.sign(
-    { userId },
-    process.env.JWT_REFRESH_SECRET,
-    {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "30d",
-    }
-  );
-};
 // REGISTER USER
 const registerUser = async (req, res) => {
   try {
@@ -55,7 +45,6 @@ const registerUser = async (req, res) => {
     const hashedOtp = await bcrypt.hash(otp, 10);
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Temporary local development log
     console.log("OTP:", otp);
 
     const user = await User.create({
@@ -109,10 +98,7 @@ const verifyOtp = async (req, res) => {
       });
     }
 
-    if (
-      user.verificationBlockedUntil &&
-      new Date() < user.verificationBlockedUntil
-    ) {
+    if (user.verificationBlockedUntil && new Date() < user.verificationBlockedUntil) {
       return res.status(429).json({
         message: "Too many failed attempts. Please try again later.",
       });
@@ -130,10 +116,7 @@ const verifyOtp = async (req, res) => {
       });
     }
 
-    const isOtpValid = await bcrypt.compare(
-      otp,
-      user.verificationOtp
-    );
+    const isOtpValid = await bcrypt.compare(otp, user.verificationOtp);
 
     if (!isOtpValid) {
       user.verificationAttempts += 1;
@@ -202,19 +185,17 @@ const loginUser = async (req, res) => {
     }
 
     const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      path: "/auth",
+      maxAge: 15 * 60 * 1000,
+      path: "/",
     });
 
     res.json({
       message: "Login successful",
-      accessToken,
       user: {
         id: user._id,
         name: user.name,
@@ -226,6 +207,27 @@ const loginUser = async (req, res) => {
     console.error("LOGIN ERROR:", error);
 
     res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+// LOGOUT USER
+const logoutUser = (req, res) => {
+  try {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
+
+    return res.status(200).json({
+      message: "Logout successful",
+    });
+  } catch (err) {
+    console.log(err);
+
+    return res.status(500).json({
       message: "Server Error",
     });
   }
@@ -249,19 +251,14 @@ const resendOtp = async (req, res) => {
       });
     }
 
-    if (
-      user.verificationBlockedUntil &&
-      new Date() < user.verificationBlockedUntil
-    ) {
+    if ( user.verificationBlockedUntil && new Date() < user.verificationBlockedUntil) {
       return res.status(429).json({
         message: "Too many failed attempts. Please try again later.",
       });
     }
 
     if (user.lastOtpResendAt) {
-      const timePassed =
-        Date.now() - user.lastOtpResendAt.getTime();
-
+      const timePassed = Date.now() - user.lastOtpResendAt.getTime();
       const cooldown = 60 * 1000;
 
       if (timePassed < cooldown) {
@@ -277,9 +274,7 @@ const resendOtp = async (req, res) => {
 
     const otp = crypto.randomInt(100000, 1000000).toString();
 
-    const otpExpiresAt = new Date(
-      Date.now() + 10 * 60 * 1000
-    );
+    const otpExpiresAt = new Date( Date.now() + 10 * 60 * 1000 );
 
     const hashedOtp = await bcrypt.hash(otp, 10);
 
@@ -291,7 +286,6 @@ const resendOtp = async (req, res) => {
 
     await user.save();
 
-    // Temporary local development log
     console.log("Resend OTP:", otp);
 
     await sendEmail(
@@ -311,44 +305,10 @@ const resendOtp = async (req, res) => {
     });
   }
 };
-// refresh AccessToken
-const refreshAccessToken = async (req,res)=>{
-    try{
-        // read
-        const refreshToken= req.cookies.refreshToken;
-        // check token
-        if(!refreshToken){
-            return res.status(401).json({
-                message : "Refresh Token Require"
-            })
-        }
-        // verify 
-        const decoder = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        // verify user
-        const user = await User.findById(decoder.userId);
-        if (!user || !user.isVerified){
-            return res.status(401).json({
-                message : "Invalid refresh Token"
-            })
-        }
-        // renew token 
-        const accessToken= generateAccessToken(user._id);
-        res.json({
-            message : "Access token refreshed successfully",
-            accessToken
-        });
-    }catch (error) {
-  console.error("REFRESH TOKEN ERROR:", error);
-
-  return res.status(401).json({
-    message: "Invalid or expired refresh token",
-  });
-}
-};
 export {
   registerUser,
   verifyOtp,
   loginUser,
   resendOtp,
-  refreshAccessToken,
+  logoutUser
 };

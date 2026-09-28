@@ -57,7 +57,7 @@ const updateTodo =  async (req,res)=>{
         priority: req.body.priority,
         },
     {
-    new:true,
+    returnDocument: "after",
     runValidators:true,})
     if(!todo){
     return res.status(404).json({
