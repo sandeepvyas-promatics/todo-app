@@ -1,5 +1,7 @@
 import express from "express";
 import { registerUser, verifyOtp, loginUser, resendOtp, logoutUser} from "../controllers/authController.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+import { deleteAccount } from "../controllers/authController.js";
 
 
 const router = express.Router();
@@ -9,8 +11,7 @@ router.post("/auth/verify-otp", verifyOtp);
 router.post("/auth/resend-otp", resendOtp);
 router.post("/auth/login", loginUser);
 router.post("/auth/logout", logoutUser);
-//router.post("/auth/refresh", refreshAccessToken);
-
+router.delete("/auth/delete-account",authMiddleware ,deleteAccount);
 
 
 export default router;

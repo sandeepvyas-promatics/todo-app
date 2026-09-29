@@ -14,11 +14,20 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(logger);
+
 app.use(authRoutes);
 app.use(todoRoutes);
 
-connectDB();
+const startServer = async ()=>{
+  try{
+   await connectDB();
 
-app.listen(4000, () => {
-  console.log("server is running on the port 4000.");
-});
+    app.listen(4000, () => {
+      console.log("server is running on the port 4000.");
+    });
+  }catch(error){
+    console.error("fails to start server: ", error);
+    process.exit(1);
+  }
+};
+startServer();

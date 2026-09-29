@@ -3,6 +3,8 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import sendEmail from "../services/emailService.js";
+import mongoose from "mongoose";
+import Todo from "../models/Todo.js";
 
 // Generate Access Token
 const generateAccessToken = (userId) => {
@@ -188,11 +190,10 @@ const loginUser = async (req, res) => {
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
       maxAge: 15 * 60 * 1000,
       path: "/",
     });
+    console.log("api is calling")
 
     res.json({
       message: "Login successful",
@@ -216,8 +217,6 @@ const logoutUser = (req, res) => {
   try {
     res.clearCookie("accessToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
       path: "/",
     });
 
@@ -305,10 +304,56 @@ const resendOtp = async (req, res) => {
     });
   }
 };
+// DELETE ACCOUNT
+const deleteAccount = async(req,res)=>{
+    const session = await mongoose.startSession();
+    try {
+        let accountNotFound = false;
+
+        await session.withTransaction(async()=>{
+            const user = await User.findById(req.user.userId).session(session);
+            console.log("USER BEFORE DELETION:", user);
+            if (!user){
+                accountNotFound = true;
+                return;
+            }
+            await Todo.deleteMany({
+                user: req.user.userId,
+            }).session(session);
+            const result = await User.deleteOne({
+              _id: user._id,
+            }).session(session);
+            console.log("USER DELETION RESULT:", result);
+            
+        })
+
+        if (accountNotFound){
+            return res.status(404).json({
+                message :"user not found"
+            })
+        }
+        res.clearCookie("accessToken",{
+            httpOnly : true,
+            path:"/"
+        })
+        return res.status(200).json({
+            message:"Account and all the todos deleted"
+        });
+    }catch(err){
+        console.log(err);
+        return res.status(500).json({
+            message : "Server Error"
+        });
+    }finally{
+        await session.endSession();
+    }
+}
+
 export {
   registerUser,
   verifyOtp,
   loginUser,
   resendOtp,
-  logoutUser
+  logoutUser,
+  deleteAccount,
 };

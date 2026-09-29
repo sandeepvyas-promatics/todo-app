@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Todo from "../models/Todo.js";
 
 const getTodos = async (req, res) => {
@@ -108,6 +109,7 @@ const toggleTodo= async (req,res)=>{
         })
     } 
 }
+
 export {
   getTodos,
   getTodoById,
