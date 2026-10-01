@@ -1,0 +1,82 @@
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      minlength: 2,
+      maxlength: 50,
+      trim: true,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
+
+    password: {
+      type: String,
+      required: true,
+    },
+
+    isVerified: {
+      type: Boolean,
+      default: false,
+      select: false
+    },
+    verificationOtp: {
+      type: String,
+    },
+
+    verificationOtpExpiresAt: {
+      type: Date,
+    },
+    verificationAttempts: {
+      type: Number,
+      default: 0,
+    },
+    verificationBlockedUntil: {
+      type: Date,
+    },
+    lastOtpResendAt: {
+      type: Date,
+    },
+    registrationExpiresAt: {
+      type: Date,
+      index: {
+          expireAfterSeconds: 0,
+      }
+    },
+    passwordResetOtp: {
+      type: String,
+    },
+
+    passwordResetOtpExpiresAt: {
+      type: Date,
+    },
+
+    passwordResetAttempts: {
+      type: Number,
+      default: 0,
+    },
+
+    passwordResetBlockedUntil: {
+      type: Date,
+    },
+
+    lastPasswordResetOtpAt: {
+      type: Date,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const User = mongoose.model("User", userSchema);
+
+export default User;
