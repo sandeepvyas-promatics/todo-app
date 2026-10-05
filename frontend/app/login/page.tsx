@@ -94,12 +94,12 @@ export default function LoginPage(){
                                 />
                             </div>
 
-                            {/* FORGET PASSWORD */}
+                            {/* FORGOT PASSWORD */}
                             <div className="text-right">
                                 <Link 
-                                href="/forget-password"
+                                href="/forgot-password"
                                 className="text-blue-600 text-sm"
-                                >Forget Password</Link>
+                                >Forgot Password</Link>
                             </div>
 
                             {/* API MESSAGE */}

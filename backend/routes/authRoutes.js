@@ -1,6 +1,5 @@
 import express from "express";
-import { registerUser, verifyOtp, loginUser, resendOtp, logoutUser, getCurrentUser} from "../controllers/authController.js";
-import {forgotPassword} from "../controllers/passwordResetController.js"
+import { registerUser, verifyOtp, loginUser, resendOtp, logoutUser, getCurrentUser, forgotPassword, resetPassword} from "../controllers/authController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { deleteAccount } from "../controllers/authController.js";
 
@@ -16,6 +15,6 @@ router.get("/auth/me",authMiddleware,getCurrentUser),
 router.delete("/auth/delete-account",authMiddleware ,deleteAccount),
 
 router.post("/auth/forgot-password", forgotPassword);
-
+router.post("/auth/reset-password",resetPassword);
 
 export default router;

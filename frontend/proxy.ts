@@ -8,7 +8,7 @@ export function proxy(request:NextRequest){
 
   const isProtectedRoute= pathname.startsWith("/todos") || pathname.startsWith("/dashboard") || pathname.startsWith("/add-todo");
 
-  const isAuthRoute= pathname === "/login" || pathname === "/register" || pathname === "/verify-otp";
+  const isAuthRoute= pathname === "/login" || pathname === "/register" || pathname === "/verify-otp"  || pathname === "/forgot-password" || pathname === "/reset-password";
 
   //User is not logged in
   if(!token && isProtectedRoute){
@@ -30,5 +30,7 @@ export const config ={
     "/login",
     "/register",
     "/verify-otp",
+    "/reset-password",
+    "/forgot-password",
   ],
 };

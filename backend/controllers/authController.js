@@ -376,7 +376,103 @@ const deleteAccount = async(req,res)=>{
         await session.endSession();
     }
 }
+// FORGET PASSWORD
+const forgotPassword = async(req,res)=>{
+  try{
+    const {email}= req.body;
+    const user = await User.findOne({email}).select("+isVerified");
+    if(!user){
+      return res.status(404).json({
+        message:"User not found",
+      });
+    }
+    if(!user.isVerified){
+      return res.status(403).json({
+        message : "Please verify your email first",
+      });
+    }
+    const otp = crypto.randomInt(100000,1000000).toString();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const hashedOtp = await bcrypt.hash(otp,10);
+    
+    user.passwordResetOtp = hashedOtp;
+    user.passwordResetOtpExpiresAt= otpExpiresAt;
+    user.passwordResetAttempts = 0;
 
+    await user.save();
+
+    await sendEmail(
+      email,
+      "Reset your Todo App password",
+      `Your password reset OTP is : ${otp}. This OTP will expire in 10 minutes.`
+    );
+    return res.status(200).json({
+      message : "Password reset OTP sent Successfully"
+    });
+  }catch(error){
+    console.error("FORGET PASSWORD ERROR: ",error);
+    return res.status(500).json({
+      message: "Server Error"
+    });
+  }
+};
+// RESET PASSWORD
+const resetPassword = async (req,res)=>{
+  try{
+    const {email, otp, newPassword}= req.body;
+    const user = await User.findOne({email});
+
+    if (!user){
+      return res.status(404).json({
+        message : "User Not Found"
+      })
+    }
+    if(user.passwordResetBlockedUntil && new Date() < user.passwordResetBlockedUntil){
+      return res.status(429).json({
+        message:"Too many failed attempts. please try again later."
+      });
+    }
+    if(!user.passwordResetOtp  || !user.passwordResetOtpExpiresAt){
+      return res.status(400).json({
+        message : "Password reset OTP not found",
+      });
+    }
+    if (new Date() > user.passwordResetOtpExpiresAt){
+      return res.status(400).json({
+        message:"Password reset OTP has expired"
+      });
+    }
+    const isOtpValid= await bcrypt.compare(otp, user.passwordResetOtp)
+    if (!isOtpValid){
+      user.passwordResetAttempts +=1;
+      if (user.passwordResetAttempts >= 5){
+        user.passwordResetBlockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+      }
+      await user.save();
+      return res.status(400).json({
+        message:"Invalid OTP",
+      });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword,10);
+
+    user.password = hashedPassword;
+    user.passwordResetOtp = undefined;
+    user.passwordResetOtpExpiresAt = undefined;
+    user.passwordResetAttempts = 0;
+    user.passwordResetBlockedUntil = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      message : "Password reset successfully"
+    });
+  }catch(error){
+    console.error("RESET PASSWORD ERROR : ",error);
+    return res.status(500).json({
+      message : "Server Error",
+    });
+  }
+};
 export {
   registerUser,
   verifyOtp,
@@ -385,4 +481,6 @@ export {
   logoutUser,
   getCurrentUser,
   deleteAccount,
+  forgotPassword,
+  resetPassword
 };

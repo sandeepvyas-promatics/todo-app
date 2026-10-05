@@ -18,11 +18,6 @@
 
   app.use(logger);
 
-  app.use((req, res, next) => {
-  console.log("BODY BEFORE ROUTES:", req.body);
-  next();
-});
-
   app.use(authRoutes);
   app.use(todoRoutes);
 
