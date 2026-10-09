@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Formik, Form, Field } from "formik";
 
 interface Todo {
-  id: string;
-  name: string;
+  _id: string;
+  title: string;
   description: string;
   dueDate: string;
   priority: "low" | "medium" | "high";
@@ -33,7 +33,7 @@ export default function TodoItem({
 {isEditing ? (
   <Formik
     initialValues={{
-      name: todo.name,
+      name: todo.title,
       description: todo.description,
       dueDate: todo.dueDate.split("T")[0],
       priority: todo.priority,
@@ -111,7 +111,7 @@ export default function TodoItem({
         : ""
     }`}
   >
-    {todo.name}
+    {todo.title}
   </h3>
 
   <p className="text-sm text-gray-400">
@@ -134,7 +134,7 @@ export default function TodoItem({
   <div className="flex gap-2 mt-3">
 
     <button
-      onClick={() => onToggle(todo.id)}
+      onClick={() => onToggle(todo._id)}
       className="bg-green-600 text-white px-3 py-1 rounded-md"
     >
       {todo.completed ? "Mark Pending" : "Complete"}
@@ -154,7 +154,7 @@ export default function TodoItem({
         );
 
         if (confirmed) {
-          onDelete(todo.id);
+          onDelete(todo._id);
         }
       }}
       className="bg-red-600 text-white px-3 py-1 rounded-md"

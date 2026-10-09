@@ -22,15 +22,18 @@ export function proxy(request:NextRequest){
 return NextResponse.next();
 }
 
-export const config ={
-  matcher : [
-    "/dashboard/:path*",
-    "/todos/:path*",
-    "/add-todo/:path*",
-    "/login",
-    "/register",
-    "/verify-otp",
-    "/reset-password",
-    "/forgot-password",
-  ],
+export const config = {
+    matcher: [
+        "/todos",
+        "/todos/:path*",
+        "/dashboard",
+        "/dashboard/:path*",
+        "/add-todo",
+        "/add-todo/:path*",
+        "/login",
+        "/register", 
+        "/verify-otp",
+        "/reset-password",
+        "/forgot-password",
+    ],
 };

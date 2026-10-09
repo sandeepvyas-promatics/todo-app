@@ -33,24 +33,30 @@ export default function AddTodoPage() {
 
   return (
     <div>
-      <AppHeader />
-      <main className="min-h-screen bg-black flex flex-col items-center px-4 py-10">
-      
-      <h1 className="text-2xl font-bold text-white">
-    Add new todo
-  </h1>
-      <div className="w-full max-w-xl">
-        <TodoForm onAdd={addTodo} />
-      </div>
-
-      <button
-        onClick={() => router.push("/todos")}
-        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition"
-      >
-        View Todos
-      </button>
-    </main>
+  <AppHeader />
+  <main className="min-h-screen bg-linear-to-b from-gray-950 via-black to-gray-950 flex flex-col items-center px-4 py-12">
+    
+    <div className="text-center mb-8">
+      <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+        Add new todo
+      </h1>
+      <p className="mt-2 text-sm text-gray-400">
+        Write down what you need to get done
+      </p>
     </div>
+
+    <div className="w-full max-w-xl bg-gray-900/70 border border-gray-800 rounded-2xl shadow-xl shadow-black/40 p-6 md:p-8 backdrop-blur">
+      <TodoForm onAdd={addTodo} />
+    </div>
+
+    <button
+      onClick={() => router.push("/todos")}
+      className="mt-8 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold px-8 py-3 rounded-xl shadow-lg shadow-blue-900/40 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-black"
+    >
+      View Todos
+    </button>
+  </main>
+</div>
     
   );
 }

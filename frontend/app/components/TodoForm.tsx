@@ -32,6 +32,7 @@ const ValidationSchema = Yup.object({
 });
 
 export default function TodoForm({ onAdd }: TodoFormProps) {
+  const today = new Date().toLocaleDateString("en-CA");
   return (
     <Formik
       initialValues={{
@@ -99,6 +100,7 @@ export default function TodoForm({ onAdd }: TodoFormProps) {
             <Field
               name="dueDate"
               type="date"
+              min={today}
               className="w-full border rounded-md p-2"
             />
 

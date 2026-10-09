@@ -3,8 +3,8 @@
 import TodoItem from "./TodoItem";
 
 interface Todo {
-  id: string;
-  name: string;
+  _id: string;
+  title: string;
   description: string;
   dueDate: string;
   priority: "low" | "medium" | "high";
@@ -37,7 +37,7 @@ export default function TodoList({
     <div>
       {todos.map((todo) => (
         <TodoItem
-          key={todo.id}
+          key={todo._id}
           todo={todo}
           onToggle={onToggle}
           onDelete={onDelete}

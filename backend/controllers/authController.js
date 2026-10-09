@@ -47,7 +47,7 @@ const registerUser = async (req, res) => {
     const hashedOtp = await bcrypt.hash(otp, 10);
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    console.log("OTP:", otp);
+    // console.log("OTP:", otp);
 
     const user = await User.create({
       name,
@@ -145,8 +145,22 @@ const verifyOtp = async (req, res) => {
 
     await user.save();
 
+    const accessToken = generateAccessToken(user._id);
+
+    res.cookie("accessToken", accessToken),{
+      httpOnly: true,
+      maxAge: 15 * 60 * 1000,
+      path: "/",
+    }
+
     res.json({
       message: "Email verified successfully",
+      user:{
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+      }
     });
   } catch (error) {
     console.error("OTP VERIFICATION ERROR:", error);

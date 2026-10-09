@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import Todo from "../models/Todo.js";
+import getTodosWithAggregation from "../services/todoAggregationService.js";
 
-const getTodos = async (req, res) => {
+const getTodoss = async (req, res) => {
     try{
         const todos = await Todo.find({ user: req.user.userId,});
          res.json(todos);
@@ -12,6 +13,30 @@ const getTodos = async (req, res) => {
     });
   }
   
+};
+const getTodos = async (req,res)=>{
+    try{
+        const {
+            status ="all",
+            priority = "all",
+            sort ="dueDateAsc",
+            search =""
+        } = req.query;
+
+        const result = await getTodosWithAggregation(
+            req.user.userId,
+            status,
+            priority,
+            sort,
+            search
+        );
+        res.json(result);
+    }catch(error){
+        console.log(error);
+        res.status(500).json({
+            message: "Server Error"
+        });
+    }
 };
 const getTodoById = async (req,res)=>{
     try {
@@ -117,4 +142,5 @@ export {
   updateTodo,
   deleteTodo,
   toggleTodo,
+  getTodoss,
 };

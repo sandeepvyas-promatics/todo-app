@@ -40,7 +40,7 @@ export default function VerifyOtpPage(){
                         console.log("VERIFY OTP RESPONSE: ",response.data);
                         sessionStorage.removeItem("verificationEmail");
 
-                        router.push("/login");
+                        router.push("/dashboard");
                     }catch(error: any){
                         console.log("VERIFY OTP ERROR: ",error);
                         setStatus({type:"error",message:error.response?.data?.message || "OTP verification Failed",});

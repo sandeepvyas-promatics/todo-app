@@ -92,13 +92,20 @@ export default function LoginPage(){
                                 component="p"
                                 className="text-red-500 text-sm mt-1 "
                                 />
+                                
                             </div>
-
+                            {/* VERIFIED PASSWORD */}
+                            <div className="flex w-full items-center justify-between">
+                                <Link 
+                                href="/verify-otp"
+                                className="text-blue-500 hover:text-blue-400 hover:underline text-sm transition"
+                                >Verify Email</Link>
+                            
                             {/* FORGOT PASSWORD */}
-                            <div className="text-right">
+                            
                                 <Link 
                                 href="/forgot-password"
-                                className="text-blue-600 text-sm"
+                                className="text-blue-500 hover:text-blue-400 hover:underline text-sm transition"
                                 >Forgot Password</Link>
                             </div>
 
@@ -121,7 +128,7 @@ export default function LoginPage(){
 
                                 <Link
                                 href="/register"
-                                className="text-blue-600">
+                                className="text-blue-500 hover:text-blue-400 hover:underline text-sm transition">
                                     Register
                                 </Link>
                             </p>
