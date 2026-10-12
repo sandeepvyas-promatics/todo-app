@@ -6,7 +6,9 @@ const getTodosWithAggregation = async (
     status = "all",
     priority = "all",
     sort = "dueDateAsc",
-    search = ""
+    search = "",
+    page = 1,
+    limit = 5
 )=>{
     // 1. match only this user's todos
     const matchStage = { user : new mongoose.Types.ObjectId(userId), };
@@ -58,6 +60,14 @@ const getTodosWithAggregation = async (
     if(sort === "oldest"){
         sortStage = { createdAt : 1};
     }
+    // to remove the swaping between the todos
+     sortStage._id = 1;
+
+    // pagging 
+    const pageNumber = Math.max(parseInt(page) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(limit) || 5,1),50);
+    const skipAmount = (pageNumber - 1) * limitNumber;
+
 
     // 4. Aggregation
 
@@ -115,12 +125,20 @@ const getTodosWithAggregation = async (
                 ],
                 // Filtered TODOS
                 todos:[
+                    
                     {
                         $match: filterStage,
                     },
                     {
                         $sort : sortStage,
-                    }
+                    },
+                    {
+                        $skip : skipAmount,
+                    },
+                    {
+                        $limit : limitNumber,
+                    },
+                   
                 ],
 
                 // total matching
@@ -130,21 +148,24 @@ const getTodosWithAggregation = async (
                     },
                     {
                         $count : "count",
-                    },
+                    }
                 ],
             },
         },
     ]);
     const result = Result[0];
+    
+    const totalMatching = result.totalMatching[0]?.count || 0;
+
     return {
         stats: result.stats[0] || {
-            total: 0,
-            completed: 0,
-            pending: 0,
-            overdue: 0,
+            total: 0, completed: 0, pending: 0, overdue: 0,
+            high: 0, medium: 0, low: 0,
         },
-        todos:result.todos,
-        totalMatching: result.totalMatching[0]?.count || 0,
+        todos: result.todos,
+        totalMatching,
+        page: pageNumber,
+        totalPages: Math.ceil(totalMatching / limitNumber),
     };
 };
 

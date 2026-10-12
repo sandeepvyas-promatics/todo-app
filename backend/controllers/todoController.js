@@ -20,7 +20,9 @@ const getTodos = async (req,res)=>{
             status ="all",
             priority = "all",
             sort ="dueDateAsc",
-            search =""
+            search ="",
+            page = 1,
+            limit = 5
         } = req.query;
 
         const result = await getTodosWithAggregation(
@@ -28,7 +30,9 @@ const getTodos = async (req,res)=>{
             status,
             priority,
             sort,
-            search
+            search,
+            page,
+            limit
         );
         res.json(result);
     }catch(error){
